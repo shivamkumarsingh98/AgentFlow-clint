@@ -65,15 +65,7 @@ const HERO_SIMULATED_STEPS = [
     selector: "li.job-card:nth-child(1)",
     url: "linkedin.com/jobs/view/stripe-staff-python"
   },
-  {
-    id: 5,
-    time: "10:02:29 AM",
-    thought: "Scraped: Stripe | Staff Python Engineer | $185,000 - $240,000 | Hybrid. Proceeding to second listing: 'AI Backend Developer at OpenAI'.",
-    status: "Extracting",
-    action: "Click",
-    selector: "li.job-card:nth-child(2)",
-    url: "linkedin.com/jobs/view/openai-ai-backend"
-  },
+
   {
     id: 6,
     time: "10:02:34 AM",

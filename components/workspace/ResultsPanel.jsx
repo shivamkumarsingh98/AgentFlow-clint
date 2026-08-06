@@ -1,17 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Briefcase, MapPin, DollarSign, Building, Search, Star, ExternalLink, GraduationCap, Award, Cpu, TrendingUp } from "lucide-react";
-import { motion } from "framer-motion";
+import { Briefcase, MapPin, Building, Search, ExternalLink, Calendar, DollarSign } from "lucide-react";
 import { useAgentStore } from "@/store/useAgentStore";
 
 export function ResultsPanel() {
   const currentTask = useAgentStore((state) => state.currentTask);
   const agentStatus = useAgentStore((state) => state.agentStatus);
+  const results = useAgentStore((state) => state.results);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Simulate loading skeleton states when the agent starts extracting data
   useEffect(() => {
     if (agentStatus.phase === "extracting") {
       setLoading(true);
@@ -22,20 +21,20 @@ export function ResultsPanel() {
     }
   }, [agentStatus.phase, currentTask]);
 
-  const results = useAgentStore((state) => state.results);
+  // Filter logic
+  const filteredResults = results.filter((row) => {
+    const role = row.title || row.role || "";
+    const company = row.company || "";
+    const location = row.location || row.loc || "";
+    return (
+      role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      location.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
-  // Filtering based on search term
-  const filteredResults = results.filter(
-    (row) =>
-      row.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.loc.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Render Skeleton rows for loading state
   const renderSkeletons = () => (
     <div className="space-y-3">
-      {/* Skeletons header */}
       <div className="grid grid-cols-4 gap-4 mb-4">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="h-20 bg-zinc-900 border border-zinc-800 rounded-xl p-4 animate-pulse flex flex-col justify-between">
@@ -44,7 +43,6 @@ export function ResultsPanel() {
           </div>
         ))}
       </div>
-      {/* Skeletons table */}
       <div className="border border-zinc-800 rounded-xl bg-zinc-900/40 p-4 space-y-4 animate-pulse">
         <div className="h-6 bg-zinc-900 rounded w-1/4 mb-4"></div>
         {[1, 2, 3].map((row) => (
@@ -59,7 +57,6 @@ export function ResultsPanel() {
     </div>
   );
 
-  // Render Empty State
   const renderEmptyState = () => (
     <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-zinc-800/80 rounded-xl bg-zinc-900/10 min-h-[300px]">
       <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-4 shadow-xl text-zinc-500">
@@ -80,22 +77,7 @@ export function ResultsPanel() {
     return renderSkeletons();
   }
 
-  // Calculate dynamic stats from real scraped jobs
   const totalJobs = results.length;
-  const relevantJobs = results.filter(row => (row.match || 0) >= 90).length;
-  const matchPercentage = totalJobs > 0 ? Math.round((relevantJobs / totalJobs) * 100) : 0;
-
-  // Extract numerical salary averages
-  const parseSalary = (salStr) => {
-    if (!salStr) return 0;
-    const clean = salStr.replace(/[^0-9]/g, "");
-    const val = parseInt(clean);
-    return isNaN(val) ? 0 : val;
-  };
-  const salaries = results.map(item => parseSalary(item.sal)).filter(s => s > 0);
-  const avgSalary = salaries.length > 0 
-    ? Math.round(salaries.reduce((acc, val) => acc + val, 0) / salaries.length) 
-    : 0;
 
   return (
     <div className="flex-1 flex flex-col gap-4 overflow-hidden h-full">
@@ -110,29 +92,11 @@ export function ResultsPanel() {
 
         <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3.5 flex flex-col justify-between hover:border-zinc-700/80 transition-colors shadow-sm">
           <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <Star className="w-3.5 h-3.5 text-emerald-500" /> Relevant Jobs
+            <Building className="w-3.5 h-3.5 text-emerald-500" /> Companies
           </span>
-          <span className="text-2xl font-semibold mt-2 text-zinc-100">{relevantJobs} <span className="text-xs text-zinc-500 font-normal">({matchPercentage}%)</span></span>
-        </div>
-
-        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3.5 flex flex-col justify-between hover:border-zinc-700/80 transition-colors shadow-sm">
-          <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5 text-purple-500" /> Average Salary
+          <span className="text-2xl font-semibold mt-2 text-zinc-100">
+            {new Set(results.map(r => r.company || "N/A")).size}
           </span>
-          <span className="text-2xl font-semibold mt-2 text-zinc-100">{avgSalary > 0 ? `$${avgSalary.toLocaleString()}` : "N/A"}</span>
-        </div>
-
-        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3.5 flex flex-col justify-between hover:border-zinc-700/80 transition-colors shadow-sm">
-          <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <Cpu className="w-3.5 h-3.5 text-yellow-500" /> Top Skills
-          </span>
-          <div className="flex gap-1.5 flex-wrap mt-2.5">
-            {["Python", "FastAPI", "Pandas"].map((skill) => (
-              <span key={skill} className="text-[9px] font-medium bg-zinc-850 px-1.5 py-0.5 rounded border border-zinc-800 text-zinc-300">
-                {skill}
-              </span>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -144,8 +108,8 @@ export function ResultsPanel() {
             <Briefcase className="w-3.5 h-3.5 text-zinc-500" /> Extracted Listings
           </h3>
           <div className="relative w-64">
-            <Search className="w-3.5 h-3.5 text-zinc-650 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
+            <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -164,45 +128,41 @@ export function ResultsPanel() {
                   <th className="px-4 py-3 font-medium">Company</th>
                   <th className="px-4 py-3 font-medium">Role</th>
                   <th className="px-4 py-3 font-medium">Location</th>
-                  <th className="px-4 py-3 font-medium">Experience</th>
                   <th className="px-4 py-3 font-medium">Salary</th>
-                  <th className="px-4 py-3 font-medium">Match Score</th>
+                  <th className="px-4 py-3 font-medium">Date Posted</th>
                   <th className="px-4 py-3 font-medium">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/50 text-zinc-300">
-                {filteredResults.map((row) => (
-                  <tr key={row.id} className="hover:bg-zinc-800/30 transition-colors group">
+                {filteredResults.map((row, index) => (
+                  <tr key={index} className="hover:bg-zinc-800/30 transition-colors group">
                     <td className="px-4 py-3.5 flex items-center gap-2 font-medium text-zinc-200">
-                      <Building className="w-3.5 h-3.5 text-zinc-500" /> {row.company}
+                      <Building className="w-3.5 h-3.5 text-zinc-500" /> {row.company || "N/A"}
                     </td>
-                    <td className="px-4 py-3.5 text-zinc-200">{row.role}</td>
-                    <td className="px-4 py-3.5 text-zinc-400"><MapPin className="w-3 h-3 inline mr-1" /> {row.loc}</td>
-                    <td className="px-4 py-3.5 text-zinc-400"><GraduationCap className="w-3.5 h-3.5 inline mr-1" /> {row.exp}</td>
-                    <td className="px-4 py-3.5 font-mono text-zinc-400"><DollarSign className="w-3 h-3 inline mr-0.5" /> {row.sal}</td>
+                    <td className="px-4 py-3.5 text-zinc-200">{row.title || row.role || "N/A"}</td>
+                    <td className="px-4 py-3.5 text-zinc-400"><MapPin className="w-3 h-3 inline mr-1" /> {row.location || row.loc || "N/A"}</td>
+                    <td className="px-4 py-3.5 text-zinc-400 font-mono text-xs">{row.salary || row.sal || "Not disclosed"}</td>
+                    <td className="px-4 py-3.5 text-zinc-400 text-xs"><Calendar className="w-3 h-3 inline mr-1 text-zinc-500" /> {row.posted_date || row.postedDate || "Recently"}</td>
                     <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded text-[11px] border border-emerald-900/50 font-semibold">
-                          {row.match}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <a 
-                        href={row.url} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 hover:underline"
-                      >
-                        Apply <ExternalLink className="w-3 h-3" />
-                      </a>
+                      {row.link || row.url ? (
+                        <a
+                          href={row.link || row.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 hover:underline font-semibold"
+                        >
+                          Apply <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <span className="text-xs text-zinc-600">No Link</span>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : (
-            <div className="text-center text-zinc-650 py-12">
+            <div className="text-center text-zinc-500 py-12">
               <Search className="w-8 h-8 mx-auto mb-2 text-zinc-700" />
               <p className="text-xs">No matching listings found.</p>
             </div>

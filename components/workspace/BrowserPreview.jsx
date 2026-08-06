@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Globe2, ExternalLink, Loader2, Image as ImageIcon, ShieldAlert, Cpu } from "lucide-react";
+import { useState } from "react";
+import { Globe2, ExternalLink, Loader2, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAgentStore } from "@/store/useAgentStore";
 
@@ -10,29 +10,6 @@ export function BrowserPreview() {
   const agentStatus = useAgentStore((state) => state.agentStatus);
   
   const [connectionError, setConnectionError] = useState(false);
-
-  const getSvgState = () => {
-    if (!browser.screenshot?.url) return "idle";
-    const urlText = browser.screenshot.url;
-    if (urlText.includes("Navigating")) return "navigating";
-    if (urlText.includes("Extracting")) return "extracting";
-    if (urlText.includes("Approval") || urlText.includes("Awaiting")) return "approval";
-    if (urlText.includes("Completed") || urlText.includes("Success")) return "completed";
-    return "idle";
-  };
-
-  const isSvg = browser.screenshot?.url?.startsWith("data:image/svg+xml") || browser.screenshot?.url?.includes("<svg");
-  const svgState = getSvgState();
-
-  const getDisplayUrl = () => {
-    if (!browser.screenshot?.url) return "about:blank";
-    if (isSvg) {
-      if (svgState === "navigating") return "https://www.linkedin.com/jobs";
-      if (svgState === "extracting" || svgState === "approval") return "https://www.linkedin.com/jobs/search?keywords=python";
-      if (svgState === "completed") return "https://www.linkedin.com/jobs/search?keywords=python";
-    }
-    return browser.url;
-  };
 
   return (
     <div className="flex-1 border border-zinc-800/80 rounded-xl bg-zinc-900 overflow-hidden flex flex-col shadow-2xl ring-1 ring-white/5 relative">
@@ -48,7 +25,7 @@ export function BrowserPreview() {
         <div className="flex-1 max-w-2xl bg-zinc-900/80 rounded-md border border-zinc-700/50 h-7 flex items-center px-3 gap-2 group hover:border-zinc-600 transition-colors cursor-text">
           <Globe2 className="w-3 h-3 text-zinc-500 group-hover:text-zinc-400 transition-colors" />
           <span className="text-xs text-zinc-300 font-mono flex-1 truncate select-all">
-            {getDisplayUrl()}
+            {browser.url || "about:blank"}
           </span>
           <ExternalLink className="w-3 h-3 text-zinc-600 hover:text-zinc-400 cursor-pointer" />
         </div>
@@ -98,47 +75,13 @@ export function BrowserPreview() {
         {/* Screenshot Viewport Container */}
         {browser.screenshot?.url ? (
           <div className="w-full h-full flex items-center justify-center">
-            {isSvg ? (
-              /* If SVG, render a clean client-mocked web view instead of nested Chrome frames */
-              <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-950 p-6 text-center">
-                {svgState === "navigating" && (
-                  <div className="space-y-4">
-                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto" />
-                    <h3 className="text-sm font-semibold text-zinc-250">Navigating to LinkedIn Job Search...</h3>
-                    <p className="text-xs text-zinc-500">Establishing session context and opening page</p>
-                  </div>
-                )}
-                {svgState === "extracting" && (
-                  <div className="space-y-4">
-                    <Loader2 className="w-8 h-8 text-emerald-500 animate-spin mx-auto" />
-                    <h3 className="text-sm font-semibold text-zinc-250">Extracting job listings from LinkedIn page...</h3>
-                    <p className="text-xs text-zinc-500">Scanning elements and collecting card parameters</p>
-                  </div>
-                )}
-                {svgState === "approval" && (
-                  <div className="space-y-4 max-w-sm bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-2xl">
-                    <span className="text-xl">⚠️</span>
-                    <h3 className="text-sm font-semibold text-zinc-200">Verification Checkpoint Reached</h3>
-                    <p className="text-xs text-zinc-500">Verify extracted listing data. Approve or Reject the step in the controls panel on the right.</p>
-                  </div>
-                )}
-                {svgState === "completed" && (
-                  <div className="space-y-4">
-                    <span className="text-3xl">✅</span>
-                    <h3 className="text-sm font-semibold text-zinc-200">Task Completed Successfully!</h3>
-                    <p className="text-xs text-zinc-500">All job entries have been parsed and compiled.</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* Real Browser Screenshot */
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img 
-                src={browser.screenshot.url} 
-                alt="Playwright live session screenshot" 
-                className="w-full h-full object-cover relative z-10"
-              />
-            )}
+            {/* Real Browser Screenshot ONLY */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src={browser.screenshot.url} 
+              alt="Playwright live session screenshot" 
+              className="w-full h-full object-cover relative z-10"
+            />
           </div>
         ) : (
           /* Empty State / Initial Placeholder representation */
