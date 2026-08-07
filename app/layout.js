@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +24,7 @@ export default function RootLayout({ children }) {
       className={`dark ${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-50 antialiased flex flex-col">
-        {children}
+        <ProtectedRoute>{children}</ProtectedRoute>
       </body>
     </html>
   );

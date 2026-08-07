@@ -42,59 +42,52 @@ export function Timeline() {
   return (
     <div 
       ref={containerRef}
-      className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3 scroll-smooth"
+      className="flex-1 overflow-y-auto pr-2 space-y-2.5 scrollbar-thin scrollbar-thumb-zinc-300 scrollbar-track-transparent"
     >
       <AnimatePresence initial={false}>
         {timeline.length > 0 ? (
           timeline.map((event) => (
             <motion.div 
               layout
-              initial={{ opacity: 0, y: 15, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
               key={event.id} 
-              className="bg-zinc-900/60 border border-zinc-800/80 rounded-lg p-3 hover:bg-zinc-900 hover:border-zinc-700/80 transition-all shadow-sm group flex items-start gap-3 shrink-0"
+              className="bg-white border border-zinc-200 rounded-xl p-3 hover:border-zinc-300 transition-all shadow-2xs flex items-start gap-2.5 shrink-0"
             >
-              <div className={`mt-0.5 p-1.5 rounded-md ${
-                event.status === 'success' ? 'bg-emerald-500/10' : 
-                event.status === 'loading' ? 'bg-blue-500/10' : 
-                event.status === 'warning' ? 'bg-yellow-500/10' : 
-                event.status === 'error' ? 'bg-red-500/10' : 'bg-zinc-800'
+              <div className={`mt-0.5 p-1 rounded-md shrink-0 ${
+                event.status === 'success' ? 'bg-emerald-50 text-emerald-600' : 
+                event.status === 'loading' ? 'bg-blue-50 text-blue-600' : 
+                event.status === 'warning' ? 'bg-yellow-50 text-yellow-600' : 
+                event.status === 'error' ? 'bg-red-50 text-red-600' : 'bg-zinc-100 text-zinc-600'
               }`}>
                 {getStatusIcon(event.status)}
               </div>
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1 gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                      event.status === 'success' ? 'bg-emerald-950 text-emerald-400 border border-emerald-900/50' : 
-                      event.status === 'loading' ? 'bg-blue-950 text-blue-400 border border-blue-900/50' : 
-                      event.status === 'warning' ? 'bg-yellow-950 text-yellow-400 border border-yellow-900/50' : 
-                      event.status === 'error' ? 'bg-red-950 text-red-400 border border-red-900/50' : 'bg-zinc-800'
-                    }`}>
-                      {event.badge}
-                    </span>
-                    
-                    {event.retryCount > 0 && (
-                      <span className="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-700/50 flex items-center gap-1 font-mono">
-                        <RotateCcw className="w-2.5 h-2.5" /> Retry {event.retryCount}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <span className="text-[10px] text-zinc-500 font-mono shrink-0">{event.timestamp}</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.2 rounded border ${
+                    event.status === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
+                    event.status === 'loading' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
+                    event.status === 'warning' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 
+                    event.status === 'error' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-zinc-100 text-zinc-600 border-zinc-200'
+                  }`}>
+                    {event.badge}
+                  </span>
+                  <span className="text-[10px] text-zinc-400 font-mono shrink-0">{event.timestamp}</span>
                 </div>
-                <p className="text-sm text-zinc-300 group-hover:text-zinc-200 transition-colors leading-relaxed">{event.text}</p>
+                <div className="text-xs text-zinc-800 leading-relaxed font-sans break-words whitespace-pre-wrap">
+                  {event.text}
+                </div>
               </div>
             </motion.div>
           ))
         ) : (
-          <div className="h-full flex items-center justify-center border border-dashed border-zinc-800/80 rounded-lg bg-zinc-900/10 text-zinc-600 text-xs py-8">
-            <div className="text-center">
-              <p className="font-medium">Timeline is empty</p>
-              <p className="text-[10px] text-zinc-500 mt-1">Start a task to stream live agent events.</p>
+          <div className="h-full flex items-center justify-center border border-dashed border-zinc-300 rounded-xl bg-zinc-50 text-zinc-400 text-xs py-10">
+            <div className="text-center space-y-1">
+              <p className="font-semibold text-zinc-600">Timeline Stream Standby</p>
+              <p className="text-[11px] text-zinc-400">Events will populate here in real-time.</p>
             </div>
           </div>
         )}

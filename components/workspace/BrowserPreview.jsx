@@ -8,85 +8,75 @@ import { useAgentStore } from "@/store/useAgentStore";
 export function BrowserPreview() {
   const browser = useAgentStore((state) => state.browser);
   const agentStatus = useAgentStore((state) => state.agentStatus);
+  const currentTask = useAgentStore((state) => state.currentTask);
   
-  const [connectionError, setConnectionError] = useState(false);
+  const displayUrl = browser.url && browser.url !== "about:blank" ? browser.url : "about:blank";
+
+  const handleOpenUrl = () => {
+    if (displayUrl && displayUrl.startsWith("http")) {
+      window.open(displayUrl, "_blank", "noopener,noreferrer");
+    }
+  };
 
   return (
-    <div className="flex-1 border border-zinc-800/80 rounded-xl bg-zinc-900 overflow-hidden flex flex-col shadow-2xl ring-1 ring-white/5 relative">
+    <div className="w-full h-full border border-zinc-200 rounded-xl bg-white overflow-hidden flex flex-col shadow-xs relative">
       {/* Browser Toolbar */}
-      <div className="h-12 border-b border-zinc-800 bg-zinc-950/80 flex items-center px-4 gap-4 backdrop-blur-md shrink-0">
-        <div className="flex gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-500/80 hover:bg-red-400 transition-colors cursor-pointer"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500/80 hover:bg-yellow-400 transition-colors cursor-pointer"></div>
-          <div className="w-3 h-3 rounded-full bg-green-500/80 hover:bg-green-400 transition-colors cursor-pointer"></div>
+      <div className="h-10 border-b border-zinc-200 bg-zinc-50 flex items-center px-3.5 gap-3 shrink-0">
+        <div className="flex gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
         </div>
         
         {/* Address Bar */}
-        <div className="flex-1 max-w-2xl bg-zinc-900/80 rounded-md border border-zinc-700/50 h-7 flex items-center px-3 gap-2 group hover:border-zinc-600 transition-colors cursor-text">
-          <Globe2 className="w-3 h-3 text-zinc-500 group-hover:text-zinc-400 transition-colors" />
-          <span className="text-xs text-zinc-300 font-mono flex-1 truncate select-all">
-            {browser.url || "about:blank"}
+        <div 
+          onClick={handleOpenUrl}
+          className="flex-1 bg-white rounded-md border border-zinc-200 h-6 flex items-center px-2.5 gap-2 group hover:border-zinc-300 transition-colors cursor-pointer shadow-2xs"
+          title={displayUrl.startsWith("http") ? "Click to open URL in new tab" : ""}
+        >
+          <Globe2 className="w-3 h-3 text-zinc-400 group-hover:text-blue-600 transition-colors shrink-0" />
+          <span className="text-[11px] text-zinc-700 font-mono flex-1 truncate select-all">
+            {displayUrl}
           </span>
-          <ExternalLink className="w-3 h-3 text-zinc-600 hover:text-zinc-400 cursor-pointer" />
+          {displayUrl.startsWith("http") && (
+            <ExternalLink className="w-3 h-3 text-zinc-400 group-hover:text-blue-600 shrink-0 transition-colors" />
+          )}
         </div>
 
         {/* Status Indicator */}
         <div className="flex items-center gap-2">
-          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
-            connectionError 
-              ? 'bg-red-950 text-red-400 border-red-900/50' 
-              : 'bg-zinc-800 text-zinc-300 border-zinc-700/50'
+          <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
+            currentTask?.status === 'running' 
+              ? 'bg-blue-50 text-blue-700 border-blue-200' 
+              : currentTask?.status === 'waiting_approval'
+              ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+              : currentTask?.status === 'completed'
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : 'bg-zinc-100 text-zinc-500 border-zinc-200'
           }`}>
-            {connectionError ? "disconnected" : agentStatus.phase}
+            {currentTask?.status || "idle"}
           </span>
         </div>
       </div>
       
       {/* Browser Viewport */}
-      <div className="flex-1 bg-zinc-950 flex items-center justify-center relative overflow-hidden">
-        {/* Connection Error Message */}
-        {connectionError && (
-          <div className="absolute inset-0 bg-zinc-950/90 z-35 flex items-center justify-center p-6 text-center backdrop-blur-sm">
-            <div className="max-w-xs">
-              <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-3 animate-bounce" />
-              <h3 className="text-sm font-semibold text-zinc-200">API Connection Lost</h3>
-              <p className="text-xs text-zinc-500 mt-1">Failed to establish stream connection. Retrying in background...</p>
-            </div>
-          </div>
-        )}
-
-        {/* Loading Overlay */}
-        <AnimatePresence>
-          {browser.isLoading && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-zinc-950/60 z-30 flex items-center justify-center backdrop-blur-[2px]"
-            >
-              <div className="flex flex-col items-center gap-2 bg-zinc-900/90 px-4 py-3 rounded-lg border border-zinc-800 shadow-xl">
-                <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
-                <span className="text-xs text-zinc-400 font-medium">Headless Browser Loading...</span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
+      <div className="flex-1 bg-zinc-100/60 flex items-center justify-center relative overflow-auto p-2">
         {/* Screenshot Viewport Container */}
         {browser.screenshot?.url ? (
-          <div className="w-full h-full flex items-center justify-center">
-            {/* Real Browser Screenshot ONLY */}
+          <div className="w-full h-full flex items-start justify-center overflow-auto rounded-lg bg-white border border-zinc-200 shadow-2xs">
+            {/* Real Browser Screenshot */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={browser.screenshot.url} 
               alt="Playwright live session screenshot" 
-              className="w-full h-full object-cover relative z-10"
+              className="max-w-full max-h-full object-contain rounded shadow-xs"
             />
           </div>
         ) : (
-          /* Empty State / Initial Placeholder representation */
-          <div className="text-center text-zinc-500 text-xs font-mono animate-pulse">
-            Waiting for browser to start...
+          /* Empty State */
+          <div className="text-center text-zinc-400 text-xs font-mono p-8 flex flex-col items-center gap-2">
+            <Globe2 className="w-7 h-7 text-zinc-300 animate-pulse" />
+            <span>Waiting for live browser session...</span>
           </div>
         )}
       </div>

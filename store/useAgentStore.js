@@ -19,10 +19,10 @@ export const useAgentStore = create((set, get) => ({
     screenshot: null,
   },
   results: [],
-  activeView: "dashboard",
-  socket: null,
-
-  // --- ACTIONS ---
+  activeWorkspaceTab: "live", // "live" | "results" | "timeline"
+  isProfileModalOpen: false,
+  setActiveWorkspaceTab: (tab) => set({ activeWorkspaceTab: tab }),
+  setProfileModalOpen: (open) => set({ isProfileModalOpen: open }),
 
   setTask: (prompt) => {
     const newTask = {
@@ -50,6 +50,7 @@ export const useAgentStore = create((set, get) => ({
       browser: { url: "about:blank", isLoading: false, screenshot: null },
       results: [],
       socket: null,
+      activeWorkspaceTab: "live",
     });
   },
 
@@ -69,7 +70,10 @@ export const useAgentStore = create((set, get) => ({
       console.log("[useAgentStore] Hitting API /api/agent/start. Payload:", { goal: currentTask.prompt });
       const response = await fetch("http://localhost:8000/api/agent/start", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify({ goal: currentTask.prompt }),
       });
 
@@ -82,7 +86,8 @@ export const useAgentStore = create((set, get) => ({
 
       set((state) => ({ currentTask: { ...state.currentTask, id: taskId } }));
 
-      const ws = new WebSocket(`ws://localhost:8000/ws/agent/${taskId}`);
+      const token = localStorage.getItem("token");
+      const ws = new WebSocket(`ws://localhost:8000/ws/agent/${taskId}?token=${token}`);
 
       ws.onopen = () => {
         get().addTimelineEvent("success", "Socket", "Live monitoring session established.");
@@ -112,6 +117,19 @@ export const useAgentStore = create((set, get) => ({
             const isApproval = parsed.event_type === "approval_required";
             const isResult = parsed.event_type === "results";
 
+            const messageText = parsed.details?.message || (typeof parsed.details === 'string' ? parsed.details : JSON.stringify(parsed.details || {}));
+
+            // Extract and update browser URL if present in event text
+            const urlMatch = messageText.match(/https?:\/\/[^\s>"]+/);
+            if (urlMatch) {
+              const detectedUrl = urlMatch[0];
+              if (!detectedUrl.includes("duckduckgo.com/y.js")) {
+                set((state) => ({
+                  browser: { ...state.browser, url: detectedUrl }
+                }));
+              }
+            }
+
             if (isApproval) {
               set((state) => ({
                 currentTask: { ...state.currentTask, status: "waiting_approval" },
@@ -124,7 +142,7 @@ export const useAgentStore = create((set, get) => ({
               }));
             }
 
-            // NAYA: Real JSON data ko directly results mein daalo
+            // Real JSON data ko directly results mein daalo
             if (isResult && parsed.details?.data) {
               const jobs = parsed.details.data;
               const formattedJobs = jobs.map((job) => ({
@@ -132,12 +150,13 @@ export const useAgentStore = create((set, get) => ({
                 company: job.company || "N/A",
                 title: job.title || "N/A",
                 location: job.location || "N/A",
+                salary: job.salary || "Not disclosed",
+                posted_date: job.posted_date || "Recently",
                 link: job.link || ""
               }));
-              set({ results: formattedJobs });
+              set({ results: formattedJobs, activeWorkspaceTab: "results" });
             }
 
-            const messageText = parsed.details?.message || JSON.stringify(parsed);
             const status = isApproval ? "warning" : (parsed.event_type === "error" ? "error" : "info");
             get().addTimelineEvent(status, parsed.event_type || "Agent", messageText);
           }
@@ -180,7 +199,13 @@ export const useAgentStore = create((set, get) => ({
       };
 
       ws.onerror = () => get().addTimelineEvent("error", "Socket", "WebSocket stream connection encountered an error.");
-      ws.onclose = () => get().addTimelineEvent("info", "Socket", "WebSocket connection closed.");
+      ws.onclose = (event) => {
+        if (event.code === 1008) {
+          get().addTimelineEvent("error", "Socket", "Unauthorized - connection rejected by server.");
+        } else {
+          get().addTimelineEvent("info", "Socket", "WebSocket connection closed.");
+        }
+      };
 
       set({ socket: ws });
 
@@ -226,7 +251,12 @@ export const useAgentStore = create((set, get) => ({
 
     try {
       console.log(`[useAgentStore] Hitting API /api/agent/${currentTask.id}/approve`);
-      const response = await fetch(`http://localhost:8000/api/agent/${currentTask.id}/approve`, { method: "POST" });
+      const response = await fetch(`http://localhost:8000/api/agent/${currentTask.id}/approve`, { 
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      });
       console.log(`[useAgentStore] Response from /api/agent/${currentTask.id}/approve status: ${response.status}`);
       if (!response.ok) throw new Error(`HTTP error ${response.status}`);
 

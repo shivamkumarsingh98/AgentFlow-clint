@@ -107,6 +107,13 @@ export default function RedesignedLandingPage() {
   const [userPromptInput, setUserPromptInput] = useState(
     "Find Python Developer jobs on LinkedIn in San Francisco, extract salary packages, and format it in a clean table."
   );
+  const [targetRoute, setTargetRoute] = useState("/register");
+
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      setTargetRoute("/workspace");
+    }
+  }, []);
   
   // Custom simulator loops
   useEffect(() => {
@@ -158,7 +165,7 @@ export default function RedesignedLandingPage() {
 
           <div className="flex items-center gap-4">
             <Link
-              href="/workspace"
+              href={targetRoute}
               className="relative rounded-lg px-4.5 py-2 text-xs font-bold uppercase tracking-wider text-white transition-all bg-gradient-to-r from-blue-600 to-blue-700 shadow-md shadow-blue-900/30 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-[1.02] flex items-center gap-2"
             >
               Start Free
@@ -211,7 +218,7 @@ export default function RedesignedLandingPage() {
           className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md mb-18"
         >
           <Link
-            href="/workspace"
+            href={targetRoute}
             className="w-full sm:w-auto px-7 py-4.5 rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-sm text-zinc-50 flex items-center justify-center gap-2 shadow-xl shadow-blue-500/20 hover:scale-[1.02] transition-all cursor-pointer border border-blue-500"
           >
             Start Automating Free
@@ -770,7 +777,7 @@ export default function RedesignedLandingPage() {
         </p>
 
         <Link
-          href="/workspace"
+          href={targetRoute}
           className="inline-flex items-center gap-2 px-8 py-4.5 rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-zinc-50 shadow-xl shadow-blue-500/20 hover:scale-[1.02] transition-all cursor-pointer border border-blue-500 text-sm"
         >
           Launch Browser Workspace
