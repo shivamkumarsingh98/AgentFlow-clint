@@ -216,23 +216,54 @@ export const useAgentStore = create((set, get) => ({
     }
   },
 
-  pauseAgent: () => {
+  pauseAgent: async () => {
     const { currentTask } = get();
     if (!currentTask || currentTask.status !== "running") return;
     set((state) => ({ currentTask: { ...state.currentTask, status: "paused" } }));
-    get().addTimelineEvent("warning", "Agent", "Agent paused locally.");
+    get().addTimelineEvent("warning", "Agent", "Sending pause command to agent runner...");
+
+    try {
+      await fetch(`http://localhost:8000/api/agent/${currentTask.id}/pause`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+      });
+      get().addTimelineEvent("warning", "Agent", "Agent paused execution on server.");
+    } catch (err) {
+      console.error("Failed to send pause command:", err);
+    }
   },
 
-  resumeAgent: () => {
+  resumeAgent: async () => {
     const { currentTask } = get();
     if (!currentTask || currentTask.status !== "paused") return;
     set((state) => ({ currentTask: { ...state.currentTask, status: "running" } }));
-    get().addTimelineEvent("info", "Agent", "Agent resumed locally.");
+    get().addTimelineEvent("info", "Agent", "Sending resume command to agent runner...");
+
+    try {
+      await fetch(`http://localhost:8000/api/agent/${currentTask.id}/resume`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+      });
+      get().addTimelineEvent("info", "Agent", "Agent resumed execution on server.");
+    } catch (err) {
+      console.error("Failed to send resume command:", err);
+    }
   },
 
-  stopAgent: () => {
+  stopAgent: async () => {
     const { currentTask, socket } = get();
     if (!currentTask) return;
+    get().addTimelineEvent("error", "Agent", "Sending cancellation command to server...");
+
+    try {
+      await fetch(`http://localhost:8000/api/agent/${currentTask.id}/cancel`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+      });
+    } catch (err) {
+      console.error("Failed to send cancel command:", err);
+    }
+
     if (socket) { try { socket.close(); } catch (e) { } }
     set((state) => ({
       currentTask: { ...state.currentTask, status: "failed" },
@@ -279,9 +310,21 @@ export const useAgentStore = create((set, get) => ({
     }
   },
 
-  rejectStep: () => {
+  rejectStep: async () => {
     const { currentTask, socket } = get();
     if (!currentTask || currentTask.status !== "waiting_approval") return;
+
+    get().addTimelineEvent("warning", "Checkpoint", "Submitting rejection to agent runner...");
+
+    try {
+      await fetch(`http://localhost:8000/api/agent/${currentTask.id}/reject`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+      });
+    } catch (err) {
+      console.error("Failed to send rejection command:", err);
+    }
+
     if (socket) { try { socket.close(); } catch (e) { } }
 
     set((state) => ({

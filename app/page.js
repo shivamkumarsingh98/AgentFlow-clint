@@ -207,7 +207,7 @@ export default function RedesignedLandingPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-base md:text-xl text-zinc-400 max-w-2xl leading-relaxed mb-10"
         >
-          An autonomous AI agent that completes the tedious, multi-step web workflows you dread doing by hand. Describe your goal in plain English, and watch it navigate, search, and extract live.
+          An autonomous AI agent that researches across multiple sites and compiles structured briefs in real-time. Describe your goal in plain English, and watch it navigate, search, click, and extract live.
         </fm.p>
 
         {/* Hero CTAs */}

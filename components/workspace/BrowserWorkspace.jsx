@@ -16,7 +16,10 @@ export function BrowserWorkspace() {
   const approveNextStep = useAgentStore((state) => state.approveNextStep);
   const rejectStep = useAgentStore((state) => state.rejectStep);
 
+  const timeline = useAgentStore((state) => state.timeline);
   const isWaitingApproval = currentTask?.status === "waiting_approval";
+  const latestApprovalEvent = timeline.slice().reverse().find((e) => e.badge === "approval_required" || e.status === "warning");
+  const approvalMessage = latestApprovalEvent?.text || (results.length > 0 ? `Review ${results.length} extracted listings and approve to finalize.` : "Human Checkpoint: Review action and approve to proceed.");
 
   return (
     <main className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden relative">
@@ -108,15 +111,15 @@ export function BrowserWorkspace() {
               </div>
               <div>
                 <h4 className="text-xs font-bold text-yellow-900">
-                  Verification Required ({results.length} Jobs Ready)
+                  Human Approval Checkpoint Required
                 </h4>
-                <p className="text-[11px] text-yellow-700">
-                  Review extracted listings and approve to finalize.
+                <p className="text-[11px] text-yellow-800 font-medium">
+                  {approvalMessage}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <button
                 onClick={approveNextStep}
                 className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-xs transition-all flex items-center gap-1.5"
@@ -129,7 +132,7 @@ export function BrowserWorkspace() {
               >
                 Reject
               </button>
-            </div>
+            </div> */}
           </motion.div>
         )}
       </AnimatePresence>
