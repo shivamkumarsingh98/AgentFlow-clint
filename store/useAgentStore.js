@@ -1,4 +1,5 @@
 import { create } from "zustand";
+const BACKEND_URL = (process.env.NEXT_PUBLIC_AGENT_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 export const useAgentStore = create((set, get) => ({
   // --- STATE ---
@@ -68,9 +69,9 @@ export const useAgentStore = create((set, get) => ({
 
     try {
       console.log("[useAgentStore] Hitting API /api/agent/start. Payload:", { goal: currentTask.prompt });
-      const response = await fetch("http://localhost:8000/api/agent/start", {
+      const response = await fetch(`${BACKEND_URL}/api/agent/start`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
@@ -87,7 +88,8 @@ export const useAgentStore = create((set, get) => ({
       set((state) => ({ currentTask: { ...state.currentTask, id: taskId } }));
 
       const token = localStorage.getItem("token");
-      const ws = new WebSocket(`ws://localhost:8000/ws/agent/${taskId}?token=${token}`);
+      const wsUrl = `${BACKEND_URL.replace(/^http/, "ws")}/ws/agent/${taskId}?token=${token}`;
+      const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
         get().addTimelineEvent("success", "Socket", "Live monitoring session established.");
@@ -223,7 +225,7 @@ export const useAgentStore = create((set, get) => ({
     get().addTimelineEvent("warning", "Agent", "Sending pause command to agent runner...");
 
     try {
-      await fetch(`http://localhost:8000/api/agent/${currentTask.id}/pause`, {
+      await fetch(`${BACKEND_URL}/api/agent/${currentTask.id}/pause`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
       });
@@ -240,7 +242,7 @@ export const useAgentStore = create((set, get) => ({
     get().addTimelineEvent("info", "Agent", "Sending resume command to agent runner...");
 
     try {
-      await fetch(`http://localhost:8000/api/agent/${currentTask.id}/resume`, {
+      await fetch(`${BACKEND_URL}/api/agent/${currentTask.id}/resume`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
       });
@@ -256,7 +258,7 @@ export const useAgentStore = create((set, get) => ({
     get().addTimelineEvent("error", "Agent", "Sending cancellation command to server...");
 
     try {
-      await fetch(`http://localhost:8000/api/agent/${currentTask.id}/cancel`, {
+      await fetch(`${BACKEND_URL}/api/agent/${currentTask.id}/cancel`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
       });
@@ -282,7 +284,7 @@ export const useAgentStore = create((set, get) => ({
 
     try {
       console.log(`[useAgentStore] Hitting API /api/agent/${currentTask.id}/approve`);
-      const response = await fetch(`http://localhost:8000/api/agent/${currentTask.id}/approve`, { 
+      const response = await fetch(`${BACKEND_URL}/api/agent/${currentTask.id}/approve`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -317,7 +319,7 @@ export const useAgentStore = create((set, get) => ({
     get().addTimelineEvent("warning", "Checkpoint", "Submitting rejection to agent runner...");
 
     try {
-      await fetch(`http://localhost:8000/api/agent/${currentTask.id}/reject`, {
+      await fetch(`${BACKEND_URL}/api/agent/${currentTask.id}/reject`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
       });

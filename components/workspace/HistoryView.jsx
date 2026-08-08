@@ -19,7 +19,8 @@ export function HistoryView() {
     const fetchHistory = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8000/api/results", {
+        const backendUrl = (process.env.NEXT_PUBLIC_AGENT_API_URL || "http://localhost:8000").replace(/\/$/, "");
+        const res = await fetch(`${backendUrl}/api/results/`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

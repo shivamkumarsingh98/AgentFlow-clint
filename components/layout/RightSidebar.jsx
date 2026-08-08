@@ -7,12 +7,12 @@ import { useAgentStore } from "@/store/useAgentStore";
 
 export function RightSidebar() {
   const [taskInput, setTaskInput] = useState("");
-  
+
   const currentTask = useAgentStore((state) => state.currentTask);
   const agentStatus = useAgentStore((state) => state.agentStatus);
   const stepsPlan = useAgentStore((state) => state.stepsPlan);
   const browser = useAgentStore((state) => state.browser);
-  
+
   const setTask = useAgentStore((state) => state.setTask);
   const startAgent = useAgentStore((state) => state.startAgent);
   const pauseAgent = useAgentStore((state) => state.pauseAgent);
@@ -62,14 +62,14 @@ export function RightSidebar() {
         <h3 className="text-xs font-bold text-zinc-800 mb-2.5 flex items-center gap-2">
           <Terminal className="w-3.5 h-3.5 text-blue-600" /> Goal Prompt
         </h3>
-        <textarea 
+        <textarea
           value={taskInput}
           onChange={(e) => setTaskInput(e.target.value)}
           disabled={isRunning || isPaused || isWaitingApproval}
           placeholder="e.g. Find Python Developer jobs in San Francisco..."
           className="w-full h-20 bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all resize-none shadow-xs disabled:opacity-60"
         />
-        <button 
+        <button
           onClick={handleStart}
           disabled={!taskInput.trim() || isRunning || isPaused || isWaitingApproval}
           className="w-full mt-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-200 disabled:text-zinc-400 text-white text-xs font-semibold py-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 transform active:scale-[0.98]"
@@ -77,7 +77,7 @@ export function RightSidebar() {
           <PlayCircle className="w-4 h-4" /> Start Agent Session
         </button>
         {isFinished && (
-          <button 
+          <button
             onClick={handleClear}
             className="w-full mt-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium py-2 rounded-lg transition-all border border-zinc-200 flex items-center justify-center gap-1.5"
           >
@@ -106,7 +106,7 @@ export function RightSidebar() {
         </div>
 
         {/* Simplified Stats Cards */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* <div className="grid grid-cols-2 gap-2">
           <div className="bg-white rounded-xl p-3 border border-zinc-200 shadow-xs">
             <span className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider block mb-1">Tokens</span>
             <span className="text-sm font-bold text-zinc-800 font-mono">{agentStatus.tokensUsed}</span>
@@ -115,7 +115,7 @@ export function RightSidebar() {
             <span className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider block mb-1">Time</span>
             <span className="text-sm font-bold text-zinc-800 font-mono">{agentStatus.executionTime}s</span>
           </div>
-        </div>
+        </div> */}
 
         {/* Current Plan Checklist */}
         <div className="p-3.5 rounded-xl border border-zinc-200 bg-white shadow-xs space-y-3">
@@ -135,10 +135,9 @@ export function RightSidebar() {
                     )}
                     {step.status === "pending" && <div className="w-3.5 h-3.5 rounded-full border border-zinc-300 bg-zinc-50" />}
                   </div>
-                  <span className={`leading-snug ${
-                    step.status === 'done' ? 'text-zinc-400 line-through' : 
+                  <span className={`leading-snug ${step.status === 'done' ? 'text-zinc-400 line-through' :
                     step.status === 'active' ? 'text-zinc-900 font-semibold' : 'text-zinc-500'
-                  }`}>
+                    }`}>
                     {step.description}
                   </span>
                 </div>
@@ -154,13 +153,13 @@ export function RightSidebar() {
       <div className="p-4 border-t border-zinc-200 bg-white flex flex-col gap-2 shrink-0">
         {isWaitingApproval && (
           <div className="flex gap-2 w-full mb-1">
-            <button 
+            <button
               onClick={approveNextStep}
               className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-xs transition-all flex items-center justify-center gap-1 active:scale-95"
             >
               <CheckCircle2 className="w-3.5 h-3.5" /> Approve
             </button>
-            <button 
+            <button
               onClick={rejectStep}
               className="flex-1 py-2.5 bg-white hover:bg-zinc-100 border border-zinc-300 text-zinc-700 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1 active:scale-95"
             >
@@ -168,17 +167,17 @@ export function RightSidebar() {
             </button>
           </div>
         )}
-        
+
         <div className="flex gap-2 w-full">
           {isPaused ? (
-            <button 
+            <button
               onClick={resumeAgent}
               className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-xs"
             >
               <Play className="w-3.5 h-3.5" /> Resume
             </button>
           ) : (
-            <button 
+            <button
               onClick={pauseAgent}
               disabled={!isRunning}
               className="flex-1 py-2 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 text-zinc-700 border border-zinc-200 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5"
@@ -186,8 +185,8 @@ export function RightSidebar() {
               <Pause className="w-3.5 h-3.5" /> Pause
             </button>
           )}
-          
-          <button 
+
+          <button
             onClick={stopAgent}
             disabled={isIdle || isFinished}
             className="flex-1 py-2 bg-red-50 hover:bg-red-100 disabled:opacity-40 text-red-600 border border-red-200 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5"

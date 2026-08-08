@@ -31,7 +31,7 @@ export function BrowserPreview() {
         {/* Address Bar */}
         <div 
           onClick={handleOpenUrl}
-          className="flex-1 bg-white rounded-md border border-zinc-200 h-6 flex items-center px-2.5 gap-2 group hover:border-zinc-300 transition-colors cursor-pointer shadow-2xs"
+          className="flex-1 min-w-0 bg-white rounded-md border border-zinc-200 h-6 flex items-center px-2.5 gap-2 group hover:border-zinc-300 transition-colors cursor-pointer shadow-2xs"
           title={displayUrl.startsWith("http") ? "Click to open URL in new tab" : ""}
         >
           <Globe2 className="w-3 h-3 text-zinc-400 group-hover:text-blue-600 transition-colors shrink-0" />
